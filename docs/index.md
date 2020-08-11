@@ -1,25 +1,25 @@
 ---
 home: true
-heroImage: /hero.png
-heroText: Hero 标题
-tagline: Hero 副标题
-actionText: 快速上手 →
+heroImage: /images/ajv_logo.png
+heroText: Ajv
+tagline: "Node.js和浏览器中最快速的JSON Schema验证器"
+actionText: v 6.12.3 →
 actionLink: /routes/
 meta:
   - name: description
-    content: 模板
+    content: Node.js和浏览器中最快速的JSON Schema验证器。
   - name: keywords
-    content: 关键词, 关键词
+    content: JSON schema, node.js
   - name: feversion
-    content: 版本号
+    content: v 6.12.3
   - name: fetags
-    content: "[{'kind': 'node'}, {'kind':'js', 'text': 'js'}]"
+    content: "[{'kind': 'node', 'text': 'node'}, {'kind':'js', 'text': 'js'}]"
 features:
-  - title: 简洁至上
-    details: 以 Markdown 为中心的项目结构，以最少的配置帮助你专注于写作。
-  - title: Vue驱动
-    details: 享受 Vue + webpack 的开发体验，在 Markdown 中使用 Vue 组件，同时可以使用 Vue 来开发自定义主题。
-  - title: 高性能
-    details: VuePress 为每个页面预渲染生成静态的 HTML，同时在页面被加载的时候，将作为 SPA 运行。
+  - title: 
+    details: 
+  - title: Ajv
+    details: Ajv 使用 doT Template 将JSON Schemas转换为高速的验证函数，从而有效地进行V8优化。
+  - title: 
+    details: 
 footer: MIT Licensed | Translated By 大笑
 ---

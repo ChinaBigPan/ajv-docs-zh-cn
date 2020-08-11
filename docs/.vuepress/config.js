@@ -1,6 +1,7 @@
 module.exports= {
-    title: '起手模板',
-    description: "别忘了改改它",
+    title: 'Ajv',
+    description: "Ajv: Another JSON Schema Validator。Node.js和浏览器中最快速的JSON Schema验证器。",
+    base: "/ajv-docs-cn/",
     markdown: {
         lineNumbers: true,
         anchor: {
@@ -11,10 +12,10 @@ module.exports= {
         activeHeaderLinks: true,
         displayAllHeaders: true,
         nav: [
-            {
-                text: "主站",
-                link: "https://febeacon.com"
-            },
+            // {
+            //     text: "主站",
+            //     link: "http://www.febeacon.com"
+            // },
             {
                 text: "文档首页",
                 link: "/"
@@ -22,18 +23,8 @@ module.exports= {
         ],
         sidebar: [
             {
-                title: '首页',
-                path: '/',
-                sidebarDepth: 2
-            },
-            {
                 title: 'Logo写了吗',
                 path: '/routes/',
-                sidebarDepth: 2
-            },
-            {
-                title: '版本号写了么',
-                path: '/routes/chapter1.html',
                 sidebarDepth: 2
             }
         ]
