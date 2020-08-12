@@ -23,8 +23,28 @@ module.exports= {
         ],
         sidebar: [
             {
-                title: 'Logo写了吗',
+                title: 'Ajv',
                 path: '/routes/',
+                sidebarDepth: 2
+            },
+            {
+                title: "Ajv-cli",
+                path: '/routes/cli',
+                sidebarDepth: 2 
+            },
+            {
+                title: "Ajv-pack",
+                path: '/routes/pack',
+                sidebarDepth: 2
+            },
+            {
+                title: "Ajv-keywords",
+                path: '/routes/keywords',
+                sidebarDepth: 2
+            },
+            {
+                title: "验证",
+                path: 'routes/validation',
                 sidebarDepth: 2
             }
         ]
