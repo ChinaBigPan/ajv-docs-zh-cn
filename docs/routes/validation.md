@@ -270,13 +270,83 @@ invalid: `[]`、`["foo", "bar"]`、任何无整数的数组。
 
 **示例：**
 
+schema: `{ "maxProperties": 2 }`
 
+valid: `{}`、`{"a": 1}`、`{"a": "1", "b": 2}`和任何非对象
 
+invalid: `{"a": 1, "b": 2, "c": 3}`
 
+### `required`
 
+关键字的值应该是**唯一字符串数组**。包含与关键字值当中元素所有属性名相同的属性才是有效的对象数据。
 
+**示例：**
 
+schema: `{ "required": ["a", "b"] }`
 
+valid: `{"a": 1, "b": 2}`、`{"a": 1, "b": 2, "c": 3}`和任何非对象
+
+invalid: `{}`, `{"a": 1}`, `{"c": 3, "d":4}`
+
+### `properties`
+
+关键字应该是**键等于数据对象属性的映射**。映射中的每个值都应该是一个 JSON Schema。要使数据对象有效，数据对象属性中的对应值应该符合这些 schema。
+
+:::  warning 请注意
+`properties`关键字并不要求其中提到的属性出现在对象中(参见示例)。
+:::
+
+**示例：**
+
+schema:
+```json
+{
+    "properties": {
+        "foo": { "type": "string" },
+        "bar": {
+            "type": "number",
+            "minimum": 2
+        }
+    }
+}
+```
+
+valid: `{}`、`{"foo": "a"}`、`{"foo": "a", "bar": 2}`和任何非对象
+
+invalid: `{"foo": 1}`、`{"foo": "a", "bar": 1}`
+
+### `patternProperties`
+
+该关键字的值应该是一个**映射**，其中键是正则表达式，值为 JSON Schema。若要使数据对象有效，匹配正则表达式的数据对象属性的值也应该符合相应的 schema。
+
+::: warning 请注意
+`patternProperties`关键字并不要求匹配通配符的属性出现在对象中(参见示例)。
+:::
+
+**示例：**
+
+schema:
+```json
+{
+    "patternProperties": {
+        "^fo.*$": { "type": "string" },
+        "^ba.*$": { "type": "number" }
+    }
+}
+```
+valid: `{}`、`{"foo": "a"}`、`{"foo": "a", "bar": 1}`和任何非对象
+
+invalid: `{"foo": 1}`、`{"foo": "a", "bar": "b"}`
+
+### `additionalProperties`
+
+该关键字的值应该是**布尔值**或**JSON Schema**。
+
+如果值为`true`则关键字会被忽略。
+
+如果值为`false`则数据对象若要有效则不应该含有"额外属性"(例如，除了那些在`properties`关键字中使用的属性和那些在`patternProperties`关键字中匹配通配符的属性)。
+
+如果该值是测试数据对象的 schema，那么根据 schema，所有"额外属性"中的值都应该有效。
 
 
 
