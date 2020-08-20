@@ -348,6 +348,196 @@ invalid: `{"foo": 1}`、`{"foo": "a", "bar": "b"}`
 
 如果该值是测试数据对象的 schema，那么根据 schema，所有"额外属性"中的值都应该有效。
 
+**示例：**
+
+1.schema
+
+    ```json
+    {
+        "properties": {
+            "foo": { "type": "number" }
+        },
+        "patternProperties": {
+            "^.*r$": { "type": "number" }
+        },
+        "additionalProperties": false
+    }
+    ```
+
+    valid: `{}`、`{"foo": 1}`、`{"foo": 1, "bar": 2}`和任何非对象
+
+    invalid: `{"a": 3}`、`{"foo": 1, "baz": 3}`
+
+2.schema
+
+    ```json
+    {
+        "properties": {
+            "foo": { "type": "number" }
+        },
+        "patternProperties": {
+            "^.*r$": { "type": "number" }
+        },
+        "additionalProperties": { "type": "string" }
+    }
+    ```
+
+    valid: {}, {"a": "b"}, {"foo": 1}, {"foo": 1, "bar": 2}, {"foo": 1, "bar": 2, "a": "b"}, any non-object
+
+    invalid: {"a": 3}, {"foo": 1, "baz": 3}
+
+3. schema
+
+    ```json
+    {
+        "properties": {
+            "foo": { "type": "number" }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+            {
+                "properties": {
+                    "bar": { "type": "number" }
+                }
+            },
+            {
+                "properties": {
+                    "baz": { "type": "number" }
+                }
+            }
+        ]
+    }
+    ```
+
+    valid: `{}`、`{"foo": 1}`和任何非对象
+
+    invalid: `{"bar": 2}`、`{"baz": 3}`、`{"foo": 1, "bar": 2}`等.
+
+### `dependencies`
+
+该关键字的值是一个**键等于对象属性的映射**。映射中的每个值应该是一个唯一的属性名称数组("属性依赖")或 JSON Schema("schema 依赖")。
+
+属性依赖指的是，如果数据对象包含关键字值中键的属性，那么若要被判定为有效数据，数据对象还应该包含属性数组中的所有属性。
+
+Schema 依赖指的是，如果数据对象包含关键字值中键的属性，那么若要被判定为有效数据，数据对象本身(注意不是属性值)应该是有效的。
+
+**示例：**
+
+1. schema(属性依赖)：
+
+    ```json
+    {
+        "dependencies": {
+            "foo": ["bar", "baz"]
+        }
+    }
+    ```
+
+    valid: `{"foo": 1, "bar": 2, "baz": 3}`、`{}`、`{"a": 1}`和任何非对象
+
+    invalid: `{"foo": 1}`、`{"foo": 1, "bar": 2}`、`{"foo": 1, "baz": 3}`
+
+2. schema(schema 依赖)
+
+    ```json
+    {
+        "dependencies": {
+            "foo": {
+                "properties": {
+                    "bar": { "type": "number" }
+                }
+            }
+        }
+    }
+    ```
+
+    valid: `{}`、`{"foo": 1}`、`{"foo": 1, "bar": 2}`、`{"a": 1}`和任何非对象
+
+    invalid: `{"foo": 1, "bar": "a"}`
+
+### `propertyNames`
+
+该关键字的值是 JSON Schema。
+
+若要使数据对象有效，该对象中的每个属性名都应该通过该 schema 的验证。
+
+**示例：**
+
+schema:
+
+```json
+{
+    "propertyNames": { "format": "email" }
+}
+```
+
+valid: `{"foo@bar.com": "any", "bar@bar.com": "any"}`和任何非对象
+
+invalid: `{"foo": "any value"}`
+
+### `patternRequired`（提案）
+
+定义`ajv-keywords`包。
+
+该关键字的值应该是字符串数组，每个字符串都是正则表达式。若要使数据对象有效，该数组中的每个正则表达式应该至少匹配数据对象中的一个属性名。
+
+如果数组包含多个正则表达式，则可以有多个表达式匹配相同的属性名。
+
+**示例：**
+
+1.schema: `{ "patternRequired": [ "f.*o" ] }`
+
+valid: `{ "foo": 1 }`、`{ "-fo-": 1 }`、`{ "foo": 1, "bar": 2 }`和任何非对象
+
+invalid: `{}`、`{ "bar": 2 }`、`{ "Foo": 1 }`
+
+2.schema: `{ "patternRequired": [ "f.*o", "b.*r" ] }`
+
+valid: `{ "foo": 1, "bar": 2 }`、`{ "foobar": 3 }`和任何非对象
+
+invalid: `{}`、`{ "foo": 1 }`、`{ "bar": 2 }`
+
+## 全类型验证关键字
+
+### `enum`
+
+关键字的值应该是由任何类型的唯一项组成的数组。如果数据深等于数组中的一项，则该数据是有效的。
+
+**示例：**
+
+schema: `{ "enum": [ 2, "foo", {"foo": "bar" }, [1, 2, 3] ] }`
+
+valid: 2、`"foo"`、`{"foo": "bar"}`、`[1, 2, 3]`
+
+invalid: 1、`"bar"`、`{"foo": "baz"}`、`[1, 2, 3, 4]`和任何不在数组中的值
+
+### `const`
+
+该关键字的值可以是任何东西。如果数据深等于关键字的值，则该数据是有效的。
+
+**示例：**  
+
+schema: `{ "const": "foo" }`
+
+valid: `"foo"`
+
+invalid: 其他值
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
