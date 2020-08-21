@@ -487,21 +487,21 @@ invalid: `{"foo": "any value"}`
 
 1.schema: `{ "patternRequired": [ "f.*o" ] }`
 
-valid: `{ "foo": 1 }`、`{ "-fo-": 1 }`、`{ "foo": 1, "bar": 2 }`和任何非对象
+  valid: `{ "foo": 1 }`、`{ "-fo-": 1 }`、`{ "foo": 1, "bar": 2 }`和任何非对象
 
-invalid: `{}`、`{ "bar": 2 }`、`{ "Foo": 1 }`
+  invalid: `{}`、`{ "bar": 2 }`、`{ "Foo": 1 }`
 
 2.schema: `{ "patternRequired": [ "f.*o", "b.*r" ] }`
 
-valid: `{ "foo": 1, "bar": 2 }`、`{ "foobar": 3 }`和任何非对象
+  valid: `{ "foo": 1, "bar": 2 }`、`{ "foobar": 3 }`和任何非对象
 
-invalid: `{}`、`{ "foo": 1 }`、`{ "bar": 2 }`
+  invalid: `{}`、`{ "foo": 1 }`、`{ "bar": 2 }`
 
 ## 全类型验证关键字
 
 ### `enum`
 
-关键字的值应该是由任何类型的唯一项组成的数组。如果数据深等于数组中的一项，则该数据是有效的。
+关键字的值应该是**由任何类型的唯一项组成的数组**。如果数据深等于数组中的一项，则该数据是有效的。
 
 **示例：**
 
@@ -513,7 +513,7 @@ invalid: 1、`"bar"`、`{"foo": "baz"}`、`[1, 2, 3, 4]`和任何不在数组中
 
 ### `const`
 
-该关键字的值可以是任何东西。如果数据深等于关键字的值，则该数据是有效的。
+该关键字的值可以是**任何东西**。如果数据深等于关键字的值，则该数据是有效的。
 
 **示例：**  
 
@@ -523,16 +523,168 @@ valid: `"foo"`
 
 invalid: 其他值
 
+使用只包含一个项的数组的`enum`关键字也可以实现同样的效果。但是`const`关键字不仅仅是`enum`的语法糖。与`$data`引用结合起来后，可以定义数据不同部分间的相等关系。这是`enum`做不到的，即便是它也搭配了`$data`引用也做不到这一点，因为`$data`不能用于替换某一项————它只能替换`enum`关键字中的整个数组。
 
+**示例：**  
 
+schema:
+```json
+{
+    "properties": {
+        "foo": { "type": "number" },
+        "bar": { "const": { "$data": "1/foo" } }
+    }
+}
+```
 
+valid: `{ "foo": 1, "bar": 1 }`、`{}`
 
+invalid: `{ "foo": 1 }`、`{ "bar": 1 }`、`{ "foo": 1, "bar": 2 }`
 
+## 复合关键字
 
+### `not`
 
+该关键字的值应该是 JSON Schema。如果**没有通过** schema 验证，那就是有效数据。
 
+**示例：**
 
+1. schema: `{ "not": { "minimum": 3 } }`
 
+   valid: `1`、`2`
+
+   invalid: `3`、`4`任何非数字
+
+2. schema: 
+   ```json
+    {
+        "not": {
+            "items": {
+                "not": { "type": "string" }
+            }
+        }
+    }
+   ```
+
+    valid: `["a"]`、`[1, "a"]`任何包括只收一个字符串的数组。
+
+    invalid: `[]`、`[1]`、任何非数组、任何不包含字符串的数组。
+
+### `oneOf`
+
+该关键字的值应该是**JSON Schema 数组**。如果数据恰好与该数组中的其中一个 JSON Schema 相匹配，则该数据是有效数据。验证过程会针对所有的 schema 进行以满足该关键字。
+
+**示例：**
+
+schema:
+```json
+{
+    "oneOf": [
+        { "maximum": 3 },
+        { "type": "integer" }
+    ]
+}
+```
+
+valid: `1.5`、`2.5`、`4`、`5`和任何非数字。
+
+invalid: `2`、`3`、`4.5`、`5.5`
+
+### `anyOf`
+
+关键字的值应该是一个**JSON Schema 数组**。如果数据满足其中的一个或多个 JSON Schema，那么就是有效数据。验证过程只需要根据 Schema 按顺序验证数据直到匹配到有效数据(或尝试验证了所有 schema)为止。因此，在大多数情况下，针对该关键字的验证要比`oneOf`快。
+
+**示例：**
+
+schema:
+```json
+{
+    "anyOf": [
+        { "maximum": 3 },
+        { "type": "integer" }
+    ]
+}
+```
+
+valid: `1.5`、`2`、`2.5`、`3`、`4`、`5`及任何非数字
+
+invalid: `4.5`、`5.5`
+
+### `allOf`
+
+该关键字的值应该是一个**JSON Schema 数组**。如果数据符合该数组中的所有 JSON Schema，则为有效数据。
+
+**示例：**
+
+schema:
+```json
+{
+    "allOf": [
+        { "maximum": 3 },
+        { "type": "integer" }
+    ]
+}
+```
+
+valid: `2`、`3`
+
+invalid: `1.5`、`2.5`、`4`、`4.5`、`5`、`5.5`及任何非数字
+
+### `if`/`then`/`else`
+
+该关键字让实现**条件验证**成为可能。它们的值应该是有效的 JSON Schema（对象或布尔值）。
+
+如果没有`if`关键字，验证将成功。
+
+如果数据**通过**了`if`关键字中的次级 schema，那么验证结果和`then`关键字中的次级 schema 验证结果相等（如果`then`不存在，则验证成功）。
+
+如果数据**没有通过**`if`关键字中的次级 schema，那么验证结果和`else`关键字中的次级 schema 验证结果相等（如果`else`不存在，则验证成功）。
+
+**示例：**
+
+1. schema
+   ```json
+    {
+        "if": { "properties": { "power": { "minimum": 9000 } } },
+        "then": { "required": [ "disbelief" ] },
+        "else": { "required": [ "confidence" ] }
+    }
+   ```
+
+   valid:
+   - `{ "power": 10000, "disbelief": true }`
+   - `{}`
+   - `{ "power": 1000, "confidence": true }`
+   - 任何非对象
+
+    invalid:
+
+    - `{ "power": 10000 }` (`disbelief`是必需的)
+    - `{ "power": 10000, "confidence": true }` (`disbelief`是必需的)
+    - `{ "power": 1000 }` (`confidence`是必需的)
+
+2. schema
+    ```json
+    {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000,
+        "if": { "minimum": 100 },
+        "then": { "multipleOf": 100 },
+        "else": {
+            "if": { "minimum": 10 },
+            "then": { "multipleOf": 10 }
+        }
+    }
+    ```
+
+    valid: `1`、`5`、`10`、`20`、`50`、`100`、`200`、`500`、`1000`
+
+    invalid:
+    - `-1`、`0` (<1)
+    - `2000` (>1000)
+    - `11`、`57`、`123` (超过非零数字的任何数字)
+    - 非整数   
 
 
 
