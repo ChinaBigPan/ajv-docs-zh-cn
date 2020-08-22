@@ -268,9 +268,72 @@ var invalidData2 = [
 
 `allRequired`
 
+该关键字要求在同一个 schema 对象中的`properties`关键字中使用的所有属性必须出现。
 
+该关键字**仅作用于对象**。如果数据不是对象，验证会返回成功。
 
+该关键字的值必须是布尔值。
 
+如果该关键字的值为`false`，验证会返回成功。
+
+如果该关键字的值为`true`，则如果数据中包含了`properties`关键字中定义的所有属性(在同一个 schema 对象中)，则验证成功。
+
+如果`properties`关键字没有出现在相同的 schema 对象中，那么 schema 编译会抛出异常。
+
+```js
+var schema = {
+  properties: {
+    foo: {type: 'number'},
+    bar: {type: 'number'}
+  }
+  allRequired: true
+};
+
+var validData = { foo: 1, bar: 2 };
+var alsoValidData = { foo: 1, bar: 2, baz: 3 };
+
+var invalidDataList = [ {}, { foo: 1 }, { bar: 2 } ];
+```
+
+### `anyRequired`
+
+该关键字所列出的属性必须出现(至少一个)。
+
+该关键字仅应用于对象，如果数据不是对象，则验证会返回成功。
+
+该关键字的值必须是一个字符串数组，每个字符串都是一个属性名。若要使对象数据有效，那么对象中至少要有一个数组中列出的属性。
+
+```js
+var schema = {
+  anyRequired: ['foo', 'bar']
+};
+
+var validData = { foo: 1 };
+var alsoValidData = { foo: 1, bar: 2 };
+
+var invalidDataList = [ {}, { baz: 3 } ];
+```
+
+### `oneRequired`
+
+该关键字所列出的属性只允许出现一个。
+
+该关键字仅应用于对象，如果数据不是对象，则验证会返回成功。
+
+该关键字的值必须是一个字符串数组，每个字符串都是一个属性名。若要使对象数据有效，那么对象中要有且只有一个数组中列出的属性。
+
+```js
+var schema = {
+  oneRequired: ['foo', 'bar']
+};
+
+var validData = { foo: 1 };
+var alsoValidData = { bar: 2, baz: 3 };
+
+var invalidDataList = [ {}, { baz: 3 }, { foo: 1, bar: 2 } ];
+```
+
+### `patternRequired`
 
 
 
