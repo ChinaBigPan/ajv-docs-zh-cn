@@ -28,6 +28,11 @@ module.exports= {
                 sidebarDepth: 2
             },
             {
+                title: "验证",
+                path: 'routes/validation',
+                sidebarDepth: 2
+            },
+            {
                 title: "Ajv-cli",
                 path: '/routes/cli',
                 sidebarDepth: 2 
@@ -40,11 +45,6 @@ module.exports= {
             {
                 title: "Ajv-keywords",
                 path: '/routes/keywords',
-                sidebarDepth: 2
-            },
-            {
-                title: "验证",
-                path: 'routes/validation',
                 sidebarDepth: 2
             }
         ]
