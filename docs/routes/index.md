@@ -104,12 +104,48 @@ Ajv 将 schema 编译为函数并在所有情况下对其进行缓存(使用[fas
 
 ## 注释关键字
 
+JSON Schema 规范定义了几个描述 schema 本身但不会触发验证的注释关键字。
 
+- `title`和`description`：表示该 schema 数据代表的信息。
+- `$comment`：（draft-07 新增）。给开发人员的信息。通过设置`$comment`项，Ajv 可以记录或将注释字符串传递给用户提供的函数。
+- `default`：数据实例的默认值。
+- `examples`：（draft-06 新增）数据实例的数组。 Ajv 不会根据 schema 检查这些实例的有效性。
+- `readOnly`和`writeOnly`：(draft-07 新增) 根据数据源(数据库、api等)将数据实例标记为只读或只写。
+- `contentEncoding`：[RFC 2045](https://tools.ietf.org/html/rfc2045#section-6.1)。如："base64"。
+- `contentMediaType`：[RFC 2046](https://tools.ietf.org/html/rfc2046)。如："image/png"。
 
+::: tip 请注意
+Ajv 没有实现关键字`example`、`contentEncoding`和`contentMediaType`的验证，但保留了它们。如果您想创建一个插件来实现其中的一些关键字，应该从实例中删除这些它们。
+:::
 
+## 格式
 
+Ajv 实现了由 JSON schema 规范定义的格式和一些其他格式。建议**不要**对不受信任的数据使用`format`关键字实现，因为它们使用了潜在的不安全的正则表达式。
 
+::: tip 请注意
+如果您需要使用`format`关键字来验证不受信任的数据，那么您必须评估它们对于您的验证场景的适用性和安全性。
+:::
 
+使用“format”关键字进行字符串验证，实现了下面这些格式：
+
+- date: 根据[RFC3339](http://tools.ietf.org/html/rfc3339#section-5.6)实现的日期。
+- time: 带时区的时间。
+- data-time: 同来源的日期时间(时区是强制性的)。`date`、`time`和`date-time`在`full`模式下验证区间而在`fast`模式下仅用正则验证。
+- uri: full URI。
+- uri-reference: URI引用，包括完整的和相对的URI。
+- uri-template: 根据[RFC6570](https://tools.ietf.org/html/rfc6570)的 URI 模板。
+- email: 邮箱地址。
+- hostname: 根据[RFC1034](http://tools.ietf.org/html/rfc1034#section-3.5)的 host 名。
+- ipv4: IP 地址 v4。
+- ipv6: IP 地址 v6。
+- regex: 通过传入正则表达式构造器来验证字符串是否是一个可用的正则表达式。
+- uuid: 全局惟一标识符。根据[RFC4122](http://tools.ietf.org/html/rfc4122)
+- json-pointer: 根据[RFC6901](https://tools.ietf.org/html/rfc6901)的 JSON 指针。
+- relative-json-pointer: 根据[该草案](http://tools.ietf.org/html/draft-luff-relative-json-pointer-00)的相对 JSON 指针。
+
+::: tip 请注意
+
+::: 
 
 
 
