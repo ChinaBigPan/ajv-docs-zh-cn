@@ -100,6 +100,10 @@ Ajv 将 schema 编译为函数并在所有情况下对其进行缓存(使用[fas
 - 所有的 Ajv 配置项。
 - 报告[JSON-patch](https://tools.ietf.org/html/rfc6902)格式验证后的数据更改。
 
+## 验证关键字 (看左边目录的验证那里)
+
+## 注释关键字
+
 
 
 
