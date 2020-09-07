@@ -2,6 +2,8 @@
 title: Ajv
 ---
 
+[英文原地址](https://github.com/ajv-validator/ajv)
+
 ## 安装
 
 ```bash
@@ -144,8 +146,72 @@ Ajv 实现了由 JSON schema 规范定义的格式和一些其他格式。建议
 - relative-json-pointer: 根据[该草案](http://tools.ietf.org/html/draft-luff-relative-json-pointer-00)的相对 JSON 指针。
 
 ::: tip 请注意
-
+JSON Schema draft-07 同样为 URL、域名、邮箱定义了`iri`、`iri-reference`、`idn-hostname`和`idn-email`格式。不过 Ajv 并未实现他们。如果您创建了实现它们的 Ajv 插件，请提 PR。 
 ::: 
+
+[Options]:https://github.com/ajv-validator/ajv#options
+
+格式验证有两种模式：`fast`和`full`。模式会影响`date`、`time`、`date-time`、`uri`、`uri-reference`和`email`。请参见[配置项][Options]文档。
+
+`unknownFormats`配置项允许在遇到未知格式时更改默认行为。在这种情况下，Ajv 要么模式编译失败(默认情况)，要么忽略它(在 5.0.0 版本之前是这样的)。你还可以指定哪些格式可以忽略。
+
+您可以找到用于格式验证的正则表达式以及[formats.js](https://github.com/ajv-validator/ajv/blob/master/lib/compile/formats.js)中使用的源代码。
+
+## 使用 $ref 组合 schema
+
+您可以跨多个 schema 文件组合验证逻辑，并通过`$ref`关键字让 schema 相互引用。
+
+示例：
+
+```js
+var schema = {
+  "$id": "http://example.com/schemas/schema.json",
+  "type": "object",
+  "properties": {
+    "foo": { "$ref": "defs.json#/definitions/int" },
+    "bar": { "$ref": "defs.json#/definitions/str" }
+  }
+};
+
+var defsSchema = {
+  "$id": "http://example.com/schemas/defs.json",
+  "definitions": {
+    "int": { "type": "integer" },
+    "str": { "type": "string" }
+  }
+};
+```
+
+现在您可以将所有的 schema 传给 Ajv 实例来编译您的 schema。
+
+```js
+var ajv = new Ajv({schemas: [schema, defsSchema]});
+var validate = ajv.getSchema('http://example.com/schemas/schema.json');
+```
+
+也可以使用`addSchema`方法：
+
+```js
+var ajv = new Ajv;
+var validate = ajv.addSchema(defsSchema)
+                  .compile(schema);
+```
+
+参见[配置项][Options]和[addSchema](https://github.com/ajv-validator/ajv#api)方法.
+
+**请注意：**
+
+- 使用 schema `id`作为基本`URI`(参见示例)，将`$ref`作为 URI 引用。
+- 引用可以是递归的(也可以相互递归)，以实现不同数据结构(如链表、树、图等)的 schema。
+- 您不必将 schema 文件放到作为 schema `id`的 URI 当中。这些 URI 仅用于定义 schema，根据 JSON schema 模式规范，验证器不应该期望能够从这些 URI 中下载 schema。
+- 没有使用 schema 文件在文件系统中的实际位置。
+- 您可以将 schema 的标识符作为`addSchema`方法的第二个参数或是`schema`配置项中的属性名称进行传递。该标识符可以用来代替 schema `$id`(或作为 schema `$id`的补充)。
+- 不能将相同的`$id`(或 schema 标识符)用于多个 schema -- 这将引发异常。
+- 您可以使用`compileAsync`方法实现引用 schema 的动态解析。通过这种方式，您可以在任何系统(文件、web、数据库等)中存储 schema 并引用它们，而无需显式地添加到 Ajv 实例中。参见[异步 schema 编译](https://github.com/ajv-validator/ajv#asynchronous-schema-compilation)
+
+## $data 引用
+
+
 
 
 
