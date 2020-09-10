@@ -211,6 +211,302 @@ var validate = ajv.addSchema(defsSchema)
 
 ## $data 引用
 
+通过`$data`配置项，您可以使用来自验证数据的值作为 schema 关键字的值。可以看看[这里](https://github.com/json-schema-org/json-schema-spec/issues/51)来了解它的原理。
+
+`$data`支持在下面的关键字当中都是支持的：const, enum, format, maximum/minimum, exclusiveMaximum / exclusiveMinimum, maxLength / minLength, maxItems / minItems, maxProperties / minProperties, formatMaximum / formatMinimum, formatExclusiveMaximum / formatExclusiveMinimum, multipleOf, pattern, required, uniqueItems.
+
+`"$data"`的值应该是指向数据的[JSON-Pointer](https://tools.ietf.org/html/rfc6901)(即使`$data`引用在被引用的子 schema 中，根始终是顶级数据对象)或[relative JSON-Pointer](http://tools.ietf.org/html/draft-luff-relative-json-pointer-00)(相对于数据中的当前点；如果`$data`引用在被引用的子 schema 中，那么它就不能指向这个子 schema 的根以外的数据)。
+
+示例：
+
+该 schema 要求`smaller`属性的值小于或等于`bigger`属性中的值：
+
+```js
+var ajv = new Ajv({$data: true});
+
+var schema = {
+  "properties": {
+    "smaller": {
+      "type": "number",
+      "maximum": { "$data": "1/larger" }
+    },
+    "larger": { "type": "number" }
+  }
+};
+
+var validData = {
+  smaller: 5,
+  larger: 7
+};
+
+ajv.validate(schema, validData); // true
+```
+
+该 schema 要求属性与他们的字段名具有相同的格式：
+
+```js
+var schema = {
+  "additionalProperties": {
+    "type": "string",
+    "format": { "$data": "0#" }
+  }
+};
+
+var validData = {
+  'date-time': '1963-06-19T08:30:06.283185Z',
+  email: 'joe.bloggs@example.com'
+}
+```
+
+`$data`引用会被安全地解析——即使某些属性未定义也不会抛出错误。如果`$data`解析为`undefined`，则验证成功(排除`const`关键字)。如果`$data`解析为不正确的类型(比方说，`maximum`关键字的值不是"number")，验证将失败。
+
+## $merge 和 $patch 关键字
+
+通过[ajv-merge-patch](https://github.com/ajv-validator/ajv-merge-patch)这个包，您可以使用`$merge`关键字和`$patch`关键字，它们允许使用[JSON Merge Patch (RFC 7396)](https://tools.ietf.org/html/rfc7396)和[JSON Patch (RFC 6902)](https://tools.ietf.org/html/rfc6902)来扩展 JSON Schema。
+
+要向 Ajv 实例中添加`$merge`和`patch`关键字您可以这样：
+
+```js
+require('ajv-merge-patch')(ajv);
+```
+
+**示例：**
+
+使用`$merge`：
+
+```json
+{
+  "$merge": {
+    "source": {
+      "type": "object",
+      "properties": { "p": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "with": {
+      "properties": { "q": { "type": "number" } }
+    }
+  }
+}
+```
+
+使用`$patch`：
+
+```json
+{
+  "$patch": {
+    "source": {
+      "type": "object",
+      "properties": { "p": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "with": [
+      { "op": "add", "path": "/properties/q", "value": { "type": "number" } }
+    ]
+  }
+}
+```
+
+上面的 schema 等同于下面的：
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "p": { "type": "string" },
+    "q": { "type": "number" }
+  },
+  "additionalProperties": false
+}
+```
+
+关键字`$merge`和`$patch`中的`source`和`with`属性可以使用绝对或相对的`$ref`来指向之前添加到 Ajv 实例中的其他 schema 或当期 schema 的片段。
+
+参见左边的[Ajv-merge-patch](https://github.com/ajv-validator/ajv-merge-patch)文档获得更多信息。
+
+## 自定义关键字
+
+使用自定义关键字的好处如下：
+
+- 允许创建无法使用 JSON schema 表示的验证场景。
+- 简化您的 schema。
+- 有助于为 schema 引入更大一部分验证逻辑。
+- 使 schema 更具表达性、更简洁、更接近应用。
+- 实现自定义数据处理来修改数据(修改项**必须**在关键字定义中使用)和/或在验证数据时创建副作用。
+
+如果一个关键字只用于副作用，并且它的验证结果是预先定义的，那么在关键字定义中使用`valid: true/false`配置项来简化生成的代码(在`valid: true`的情况下没有错误处理)和关键字函数(不需要返回任何验证结果)。
+
+在使用自定义关键字扩展 JSON Schema 标准时，必须注意您的 schema 的可移植性和礼节性。您必须在其他平台上支持这些自定义关键字，且进行正确的文档说明，方便每个人都能理解。
+
+您也可以使用[addKeyword](https://github.com/ajv-validator/ajv#api-addkeyword)方法自定义关键字。关键字是在`ajv`实例级别上定义的----新实例没有以前定义的关键字。
+
+Ajv 允许通过以下方式定义关键字:
+
+- 验证函数
+- 编译函数
+- 宏函数
+- 内联编译函数，它的作用是返回当前编译 schema 中的内联编译代码(作为字符串)。
+
+示例，使用编译 schema 的`range`和`exclusiveRange`关键字：
+
+```js
+ajv.addKeyword('range', {
+  type: 'number',
+  compile: function (sch, parentSchema) {
+    var min = sch[0];
+    var max = sch[1];
+
+    return parentSchema.exclusiveRange === true
+            ? function (data) { return data > min && data < max; }
+            : function (data) { return data >= min && data <= max; }
+  }
+});
+
+var schema = { "range": [2, 4], "exclusiveRange": true };
+var validate = ajv.compile(schema);
+console.log(validate(2.01)); // true
+console.log(validate(3.99)); // true
+console.log(validate(2)); // false
+console.log(validate(4)); // false
+```
+
+在[ajv-keywords](https://github.com/ajv-validator/ajv-keywords)包中定义了数个自定义关键字(`typeof`、`instanceof`、`range`和`propertyNames`)它们可以在您的 schema 中使用，并作为您自己的自定义关键字的起点。
+
+参见[自定义关键字](https://github.com/ajv-validator/ajv/blob/master/CUSTOM.md)获取更多信息。
+
+## 异步 schema 编译
+
+在异步编译期间，使用提供的函数加载远程引用。参见`compileAsync`[方法](https://github.com/ajv-validator/ajv#api-compileAsync)和`loadSchema`[配置项](https://github.com/ajv-validator/ajv#options)。
+
+**示例：**
+
+```js
+var ajv = new Ajv({ loadSchema: loadSchema });
+
+ajv.compileAsync(schema).then(function (validate) {
+  var valid = validate(data);
+  // ...
+});
+
+function loadSchema(uri) {
+  return request.json(uri).then(function (res) {
+    if (res.statusCode >= 400)
+      throw new Error('Loading error: ' + res.statusCode);
+    return res.body;
+  });
+}
+```
+
+::: warning 请注意
+[配置项](https://github.com/ajv-validator/ajv#options)`missingRefs`不应该在异步编译时设置为`"ignore"`或`"fail"`。
+:::
+
+## 异步验证
+
+Node.js 交互式编程环境(REPL)的[示例](https://tonicdev.com/esp/ajv-asynchronous-validation)
+
+[addFormat]:https://github.com/ajv-validator/ajv#api-addformat
+[addKeyword]:https://github.com/ajv-validator/ajv#api-addkeyword
+[定义自定义关键字]:https://github.com/ajv-validator/ajv#defining-custom-keywords
+
+您可以通过访问数据库或其他服务来定义执行异步验证的自定义格式和关键字。您应该在关键字或格式定义中添加`async: true`(参见[addFormat][addFormat]、[addKeyword][addKeyword]和[定义自定义关键字][定义自定义关键字])
+
+如果您的 schema 使用了异步格式/关键字，或者应用了一些包含这些关键字的 schema，那么它应该带有`"$async": true`关键字，以便 Ajv 能够正确编译它。如果在没有`$async`关键字的 schema 中使用异步格式/关键字或对异步 schema 的引用，那么 Ajv 将在 schema 编译期间抛出异常。
+
+::: tip 请注意
+从当前 schema 或其他 schema 引用的所有异步子 schema 也应该具有`"$async":true`关键字，否则模式编译将失败。
+::: 
+
+异步自定义格式/关键字的验证函数应该返回一个结果为`true`或`false`的 Promise (或者如果希望从关键字函数返回自定义错误，则使用 reject 返回`new Ajv.ValidationError(errors)`)。
+
+Ajv 将异步 schema 编译为 async 函数，它们可以使用[nodent](https://github.com/MatAtBread/nodent)进行转换。Node.js 7+ 和所有现代浏览器都支持 async 函数。您还可以通过`processCode`配置项提供作为函数的其他转换器。参见[配置项](https://github.com/ajv-validator/ajv#options)。
+
+编译后的验证函数具有`$async: true`属性(如果模式是异步的)，因此如果同时使用同步模式和异步模式，您可以将它们区分开来。
+
+验证结果是一个返回验证数据(resolve)或带有`Ajv.ValidationError`(reject)的 Promise。
+
+**示例：**
+
+```js
+var ajv = new Ajv;
+// require('ajv-async')(ajv);
+
+ajv.addKeyword('idExists', {
+  async: true,
+  type: 'number',
+  validate: checkIdExists
+});
+
+
+function checkIdExists(schema, data) {
+  return knex(schema.table)
+  .select('id')
+  .where('id', data)
+  .then(function (rows) {
+    return !!rows.length; // true if record is found
+  });
+}
+
+var schema = {
+  "$async": true,
+  "properties": {
+    "userId": {
+      "type": "integer",
+      "idExists": { "table": "users" }
+    },
+    "postId": {
+      "type": "integer",
+      "idExists": { "table": "posts" }
+    }
+  }
+};
+
+var validate = ajv.compile(schema);
+
+validate({ userId: 1, postId: 19 })
+.then(function (data) {
+  console.log('Data is valid', data); // { userId: 1, postId: 19 }
+})
+.catch(function (err) {
+  if (!(err instanceof Ajv.ValidationError)) throw err;
+  // data is invalid
+  console.log('Validation errors:', err.errors);
+});
+```
+
+### 使用带有异步验证函数的转换器
+
+[ajv-async](https://github.com/ajv-validator/ajv-async)使用[nodent](https://github.com/MatAtBread/nodent)来转换异步函数。要使用另一个转换器，你应该单独安装它(或在浏览器中加载它的包)。
+
+**使用 nodent：**
+
+```js
+var ajv = new Ajv;
+require('ajv-async')(ajv);
+// 在浏览器环境，如果您想单独加载 ajv-async 的包，您可以使用：
+// window.ajvAsync(ajv);
+var validate = ajv.compile(schema); // 转换 es7 async function
+validate(data).then(successFunc).catch(errorFunc);
+```
+
+**使用其他转换器：**
+
+```js
+var ajv = new Ajv({ processCode: transpileFunc });
+var validate = ajv.compile(schema); // 转换 es7 async function
+validate(data).then(successFunc).catch(errorFunc);
+```
+
+## 安全注意事项
+
+
+
+
+
+
+
+
+
+
 
 
 

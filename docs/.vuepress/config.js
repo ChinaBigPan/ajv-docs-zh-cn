@@ -10,7 +10,7 @@ module.exports= {
     },
     themeConfig: {
         activeHeaderLinks: true,
-        displayAllHeaders: true,
+        displayAllHeaders: false,
         nav: [
             // {
             //     text: "主站",
@@ -45,6 +45,16 @@ module.exports= {
             {
                 title: "Ajv-keywords",
                 path: '/routes/keywords',
+                sidebarDepth: 2
+            },
+            {
+                title: "Ajv-merge-patch",
+                path: '/routes/merge_patch',
+                sidebarDepth: 2
+            },
+            {
+                title: "Ajv-async",
+                path: '/routes/async',
                 sidebarDepth: 2
             }
         ]
