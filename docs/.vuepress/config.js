@@ -48,6 +48,10 @@ module.exports= {
                 sidebarDepth: 2
             },
             {
+                title: "自定义关键字",
+                path: '/routes/custom'
+            },
+            {
                 title: "Ajv-merge-patch",
                 path: '/routes/merge_patch',
                 sidebarDepth: 2
