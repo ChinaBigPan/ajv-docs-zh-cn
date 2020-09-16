@@ -286,11 +286,29 @@ Ajv 使用了[doT Template][doT Template]来生成验证函数的代码，由于
 
 `it`对象具有以下属性：
 
-- level：
+[Validation time variables]:https://github.com/ajv-validator/ajv/blob/master/CUSTOM.md#validation-time-variables
+[switch]:https://github.com/ajv-validator/ajv-keywords/blob/master/keywords/dot/switch.jst
+[Ajv utilities]:https://github.com/ajv-validator/ajv/blob/master/CUSTOM.md#ajv-utilities
 
+| `it`的属性 | 描述 |
+|:---:|---|
+| `level` | 当前 schema 的级别，顶层为`0`，子级 schema 为`1`(例如`property`中的 schema 或`anyOf`关键字中的 schema)。该属性的值应该附加到您在生成的代码中使用的 validation-time 变量。|
+| `dataLevel` | 当前已验证数据的级别。它可以用于从上到下访问所有级别上的属性名和数据。参见[验证时间变量][Validation time variables]。 |
+| `schema` | 当前级别的 schema。您的关键字的值是`it.schema[keyword]`，该值会作为第三个参数传递给内联编译函数，而当前级别 schema 则会作为第四个参数。 |
+| `schemaPath` | 验证时间表达式，计算结果为当前 schema 的属性名。 |
+| `baseId` | 应该用作解析引用($ref)中 URI 基础的 base URI。 |
+| `async` | 如果当前 schema 是异步的则为真值。|
+| `opts` | Ajv 实例的配置项。您不应该更改它们。|
+| `formats ` | Ajv 实例中所有可用的格式，包括自定义格式。|
+| `compositeRule` | 布尔值，表示当前 schema 是否位于符合关键字内，其中的部分规则失败并不意味着验证失败(`switch`中的`anyOf`、`oneOf`、`not`和`if`)。该值可以用来确定如果`allErrors`配置项的值不是`true`的时候是否可以在出现错误后立即返回验证结果。只有在关键字中有许多步骤并且可能定义多个错误时才需要这样做。 |
+| `validate` | 用于编译关键字中的子级 schema 的函数(例如，请参阅`switch`关键字的[实现][switch])。 |
+| `util` | 可以用在内联变异函数中的[Ajv 工具][Ajv utilities] |
+| `self`| Ajv 实例 |
 
 
 ## 验证时间变量
+
+
 
 ## Ajv 工具
 
