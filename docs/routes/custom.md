@@ -67,8 +67,10 @@ console.log(validate({foo: 'baz'})); // false
 
 Ajv 中已经能够使用`const`关键字。
 
+[Reporting errors in custom keywords]:https://github.com/ajv-validator/ajv/blob/master/CUSTOM.md#reporting-errors-in-custom-keywords
+
 ::: tip 请注意
-如果关键字没有定义自定义错误(参见[自定义关键字中的错误报告](https://github.com/ajv-validator/ajv/blob/master/CUSTOM.md#reporting-errors-in-custom-keywords))，则在其定义中传入`error: false`可以使生成的代码更有效。
+如果关键字没有定义自定义错误(参见[自定义关键字中的错误报告][Reporting errors in custom keywords])，则在其定义中传入`error: false`可以使生成的代码更有效。
 :::
 
 添加异步关键字可以在定义中传入`async: true`。
@@ -292,7 +294,7 @@ Ajv 使用了[doT Template][doT Template]来生成验证函数的代码，由于
 
 | `it`的属性 | 描述 |
 |:---:|---|
-| `level` | 当前 schema 的级别，顶层为`0`，子级 schema 为`1`(例如`property`中的 schema 或`anyOf`关键字中的 schema)。该属性的值应该附加到您在生成的代码中使用的 validation-time 变量。|
+| `level` | 当前 schema 的级别，顶层为`0`，子级 schema 为`1`(例如`property`中的 schema 或`anyOf`关键字中的 schema)。该属性的值应该附加到您在生成的代码中使用的验证时变量。|
 | `dataLevel` | 当前已验证数据的级别。它可以用于从上到下访问所有级别上的属性名和数据。参见[验证时间变量][Validation time variables]。 |
 | `schema` | 当前级别的 schema。您的关键字的值是`it.schema[keyword]`，该值会作为第三个参数传递给内联编译函数，而当前级别 schema 则会作为第四个参数。 |
 | `schemaPath` | 验证时间表达式，计算结果为当前 schema 的属性名。 |
@@ -306,11 +308,69 @@ Ajv 使用了[doT Template][doT Template]来生成验证函数的代码，由于
 | `self`| Ajv 实例 |
 
 
-## 验证时间变量
+## 验证时变量
 
+您可以在关键字生成的(验证时)代码中使用许多变量和表达式。
+
+- `'data' + (it.dataLevel || '')`：当前级别数据的变量名。
+- `'data' + ((it.dataLevel-1)||'')`：`it.dataLevel > 0`时的父级数据。
+- `'rootData'`：根数据。
+- `it.dataPathArr[it.dataLevel]`：`it.dataLevel > 0`时父级对象中指向当前数据的属性名称。
+- `'validate.schema'` 验证时当前验证函数的顶级 schema。
+- `'validate.schema' + it.schemaPath`：验证时可用的当前级别 schema (编译时的相同 schema 是`it.schema`) 。
+- `'validate.schema' + it.schemaPath + '.' + keyword`：自定义关键字在验证时的值。关键字是传给内联编译函数的第二个参数，从而允许使用同一个函数编译多个关键字。
+- `'valid' + it.level`：如果关键字返回语句而非表达式，则必须声明该变量并将验证结果分配给该变量（`statements: true`）。
+- `'errors'`：错误的数量。参见[自定义关键字中的错误报告][Reporting errors in custom keywords]。
+- `vErrors`：到目前为止收集到的错误数组。。参见[自定义关键字中的错误报告][Reporting errors in custom keywords]。
 
 
 ## Ajv 工具
+
+您可以在你的内联关键字中使用一些有用的函数。这些函数可以作为`it.util`对象的属性。
+
+#### .copy(Object obj[, Object target]) -> Object
+
+克隆或扩展对象。如果传入一个对象，则克隆。如果传入两个对象，则使用第一个对象的属性扩展第二个。
+
+#### .toHash(Array arr) -> Object
+
+将字符串数组转换为对象，其中每个字符串都成为值为`true`的键。
+
+```js
+it.util.toHash(['a', 'b', 'c']) // { a: true, b: true, c: true }
+```
+
+#### .equal(value1, value2) -> Boolean
+
+执行深度相等比较。该函数用于关键字`enum`、`constant`、`uniqueItems`中，并可用于自定义关键字。
+
+#### .getProperty(String key) -> String
+
+将访问属性/项的键/索引字符串转换为 JavaScript 语法可以访问的样式(`.`语法或`[…]`语法)。
+
+```js
+it.util.getProperty('a')   // ".a"
+it.util.getProperty('1')   // "['1']"
+it.util.getProperty("a'b") // "['a\\'b']"
+it.util.getProperty(1)     // "[1]"
+```
+
+#### .schemaHasRules(Object schema, Object rules) -> String
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 报告自定义关键字中的错误
 
