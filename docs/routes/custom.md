@@ -328,11 +328,11 @@ Ajv 使用了[doT Template][doT Template]来生成验证函数的代码，由于
 
 您可以在你的内联关键字中使用一些有用的函数。这些函数可以作为`it.util`对象的属性。
 
-#### .copy(Object obj[, Object target]) -> Object
+#### `.copy(Object obj[, Object target]) -> Object`
 
 克隆或扩展对象。如果传入一个对象，则克隆。如果传入两个对象，则使用第一个对象的属性扩展第二个。
 
-#### .toHash(Array arr) -> Object
+#### `.toHash(Array arr) -> Object`
 
 将字符串数组转换为对象，其中每个字符串都成为值为`true`的键。
 
@@ -340,11 +340,11 @@ Ajv 使用了[doT Template][doT Template]来生成验证函数的代码，由于
 it.util.toHash(['a', 'b', 'c']) // { a: true, b: true, c: true }
 ```
 
-#### .equal(value1, value2) -> Boolean
+#### `.equal(value1, value2) -> Boolean`
 
 执行深度相等比较。该函数用于关键字`enum`、`constant`、`uniqueItems`中，并可用于自定义关键字。
 
-#### .getProperty(String key) -> String
+#### `.getProperty(String key) -> String`
 
 将访问属性/项的键/索引字符串转换为 JavaScript 语法可以访问的样式(`.`语法或`[…]`语法)。
 
@@ -355,62 +355,106 @@ it.util.getProperty("a'b") // "['a\\'b']"
 it.util.getProperty(1)     // "[1]"
 ```
 
-#### .schemaHasRules(Object schema, Object rules) -> String
+#### `.schemaHasRules(Object schema, Object rules) -> String`
 
+确定传递的 schema 是否有需要验证的规则。这个函数应该在调用`it.validate`编译子集 schema 之前使用。
 
+```js
+it.util.schemaHasRules(schema, it.RULES.all) // true or false
+```
 
+#### `.escapeQuotes(String str) -> String`
 
+对字符串中的单引号进行转义，这样就可以使用单引号将其插入到生成的代码的字符串常量中。
 
+#### `.toQuotedString(String str) -> String`
 
+将字符串转换为单引号中的 JavaScript 字符串常量(使用转义字符串)。
 
+```js
+it.util.toQuotedString("a'b") // "'a\\'b'"
+```
 
+#### `.getData(String jsonPointer, Number dataLevel, Array paths) -> String`
 
+返回验证时间表达式，以基于传递的 json 指针安全地访问数据(参见示例)。
 
+```js
+it.util.getData('2/test/1', it.dataLevel, it.dataPathArr)
+// 结果依赖于当前 level
+// 如果 it.dataLevel 为 3，则结果为 "data1 && data1.test && data1.test[1]"
+```
 
+#### `.escapeJsonPointer(String str) -> String`
 
+将属性名称转换为 JSON 指针片段。
 
+#### `.unescapeJsonPointer (String str) -> String`
 
+将 JSON 指针片段转换为属性名。
 
+#### `.unescapeFragment(String str) -> String`
+
+将属性名称转换为可在 URI 中使用的 JSON 指针片段。
+
+#### `.escapeFragment(String str) -> String`
+
+将 JSON 指针片段从 URI 转换为属性名。
 
 ## 报告自定义关键字中的错误
 
+除宏(macro)关键字外的所有自定义关键字可以选择创建自定义错误消息。
+
+同步验证和编译关键字应该通过将它们分配给验证函数的`.errors`属性来定义错误。异步关键字可以通过`new Ajv.ValidationError(erros)`返回 reject 的 promise，其中`errors`是自定义验证错误的数组(如果不想在异步关键字中定义自定义错误，则其验证函数可以返回值为`false`的 promise)。
+
+[example range keyword]:https://github.com/ajv-validator/ajv/blob/master/spec/custom_rules/range_with_errors.jst
+
+内联自定义关键字应该增加错误计数器`errors`，并将粗偶添加到`vErrors`数组(其值可以为 null)。对于异步和同步关键字这么做都是可以的。参见[example range keyword][example range keyword]。
+
+当内联关键字执行验证验证时，Ajv 通过比较验证前后的错误计数来监查其是否创建了错误。要跳过这个检查，可以向关键字定义中添加`errors`配置项(它的值可以是`"full"`、`true`、`false`)：
+
+```js
+ajv.addKeyword('range', {
+  type: 'number',
+  inline: inlineRangeTemplate,
+  statements: true,
+  errors: true // 在验证失败时，关键字应当创建自定义错误
+  // errors: 'full' // 创建的错误应该设置了 dataPath
+  // errors: false // 关键字不会产生错误，Ajv 将添加一个默认错误
+});
+```
+
+每个错误对象至少应该有`keyword`、`message`和`params`属性，其他属性随后添加。内联关键字可以在错误对象中定义`dataPath`和`schemaPath`属性，它们将由 Ajv 分配，除非关键字的`errors`配置项是`"full"`。
+
+如果自定义关键字不创建错误，则在关键字验证失败时将创建默认错误(参见[Ajv 的验证错误](https://github.com/ajv-validator/ajv#validation-errors))。
+
 ## 短路验证
 
+在某些情况下，内联关键字可以在遇到错误时立即终止验证并返回结果。只有当您定义的关键字有许多标准需要验证，并且您希望它能够快速失败时才会这样。只有在关键字本身定义了错误时才需要这样做，否则 Ajv 将在创建默认错误时返回(如果满足以下条件)。
 
+在关键字返回结果之前，会检查两个条件：
 
+- 不应使用`allErrors`配置项(`!it.opts.allErrors`应该为 true)。
+- 当某些关键字失败并不意味着验证失败(`!it.compositeRule`应该为 true)，当前 schema 不应该在复合规则中(例如`no`或`anyOf`)。
+  
+如果满足这些条件，您的关键字可以立即返回结果。如果当前 schema 是异步的(`it.async`的值不是`true`)，当其遇到错误`err`时，您可以将其添加到关键字的生成代码：
 
+```js
+if (vErrors === null) vErrors = [err];
+else vErrors.push(err);
+validate.errors = vErrors;
+return false;
+```
 
+如果当前 schema 是异步返回结果的(`it.async`的值为`true`)，您需要：
 
+```js
+if (vErrors === null) vErrors = [err];
+else vErrors.push(err);
+throw new ValidationError(vErrors); // ValidationError 在作用域内
+```
 
+如果使用了`allErrors`配置项，关键字应该在遇到错误后继续验证，从而找到尽可能多的错误。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+如果不使用`allErrors`配置项，但`it.compositeRule`为真值(truthy)，关键字可能会短路验证，但不应该返回最终的验证结果。
 
