@@ -498,6 +498,10 @@ validate(data).then(successFunc).catch(errorFunc);
 
 ## 安全注意事项
 
+如果使用得当，JSON Schema 可以替代数据清理，但并不会取代其他的 API 安全注意事项。它引入了其它需要考虑的安全方面的事项。
+
+#### 安全联系(Security contact)
+
 
 
 
