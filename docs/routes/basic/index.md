@@ -533,7 +533,65 @@ Ajv 不支持在对象中具有循环引用的 schema 和验证数据。参见[�
 
 JSON schema 中的一些关键字可能导致对某些数据的验证非常缓慢。这些数字包括(但可能不限于)：
 
-- 大量字符串的`pattern`和`format`
+- 用`pattern`和`format`匹配大量字符串 ———— 在某些情况下`maxLength`可以帮我我们缓解它，但某些正则表达式可能导致验证时间呈指数级增长，即使是相对较短的字符串(参见下面的 ReDoS 攻击)。
+- 用`patternProperties`匹配大量属性名称 ———— 使用`propertyNames`来缓解，但是一些正则表达式也可能会有指数级的计算时间。
+- 用于大型非表里数组的`uniqueItems` ———— 使用`maxItems`来缓解。
+
+::: warning 请注意
+只有在生产环境代码中不使用`allErrors:true`时，上面防止缓慢验证的建议才起效(使用它将在验证错误之后继续验证)。
+::: 
+
+[meta-schema]:https://github.com/ajv-validator/ajv/blob/master/lib/refs/json-schema-secure.json
+
+您可以根据[元 schema][meta-schema]来验证您的 JSON schema 以检查是否遵循了以下协议：
+
+```js
+const isSchemaSecure = ajv.compile(require('ajv/lib/refs/json-schema-secure.json'));
+
+const schema1 = {format: 'email'};
+isSchemaSecure(schema1); // false
+
+const schema2 = {format: 'email', maxLength: MAX_LENGTH};
+isSchemaSecure(schema2); // true
+```
+
+::: warning 谨记
+遵循所有这些建议并不能保证对不可信数据的验证是安全的 ———— 凡事总有意外嘛。
+:::
+
+## 正则Dos攻击(ReDos Attack)
+
+即使字符串相对较短，某些正则表达式也可能导致计算时间呈指数级成长。
+
+[safe-regex]:https://github.com/substack/safe-regex
+
+请评估您在模式中使用的正则表达式对这种攻击的抵抗力 —— 参见[安全正则][safe-regex]。
+
+[regular expressions]:https://github.com/ajv-validator/ajv/blob/master/lib/compile/formats.js
+
+::: tip 请注意
+Ajv 使用[正则表达式][regular expressions]实现了一些格式，它们容易遭到 ReDoS 攻击，所以如果你使用 Ajv 验证来自不可信来源的数据，强烈建议考虑以下几点：
+
+[addFormat]:https://github.com/ajv-validator/ajv#api-addformat
+
+- 评估 Ajv 中"格式"的实现。
+- 使用`format: 'fast'`配置项简化了一些正则表达式(尽管这也不能保证它们是安全的)。
+- 将 Ajv 提供的格式实现替换成您自己的`format`关键字实现，这些实现使用不同的正则表达式或另一种格式验证方法。参见[addFormat][addFormat]方法。
+- 禁用格式验证，使用`format: false`忽略`format`关键字。
+
+无论您选择哪种措施，请先假定 Ajv 提供的所有格式都不安全，并自行评估它是否适合您的验证场景。
+:::
+
+## 过滤数据
+
+
+
+
+
+
+
+
+
 
 
 
