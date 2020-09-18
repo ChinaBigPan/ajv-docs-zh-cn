@@ -584,6 +584,43 @@ Ajv 使用[正则表达式][regular expressions]实现了一些格式，它们�
 
 ## 过滤数据
 
+利用[removeAdditional](https://github.com/ajv-validator/ajv#options)配置项您可以在验证期间过滤数据。
+
+它会修改原始数据。
+
+示例：
+
+```js
+var ajv = new Ajv({ removeAdditional: true });
+var schema = {
+  "additionalProperties": false,
+  "properties": {
+    "foo": { "type": "number" },
+    "bar": {
+      "additionalProperties": { "type": "number" },
+      "properties": {
+        "baz": { "type": "string" }
+      }
+    }
+  }
+}
+
+var data = {
+  "foo": 0,
+  "additional1": 1, // 将会被移除; `additionalProperties` == false
+  "bar": {
+    "baz": "abc",
+    "additional2": 2 // 不会被移除; `additionalProperties` != false
+  },
+}
+
+var validate = ajv.compile(schema);
+
+console.log(validate(data)); // true
+console.log(data); // { "foo": 0, "bar": { "baz": "abc", "additional2": 2 }
+```
+
+如果上面示例中的`removeAdditional`配置项是`"all"`，那么`additional1`和`additional2`属性都将被删除。
 
 
 
