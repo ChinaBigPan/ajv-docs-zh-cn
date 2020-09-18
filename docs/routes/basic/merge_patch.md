@@ -1,5 +1,6 @@
 ---
 title: ajv-merge-patch
+sidebarDepth: 2
 ---
 
 # ajv-merge-patch

@@ -1,5 +1,6 @@
 ---
 title: ajv-async
+sidebarDepth: 2
 ---
 
 # ajv-async

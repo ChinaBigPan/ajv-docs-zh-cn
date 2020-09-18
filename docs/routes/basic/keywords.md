@@ -1,5 +1,6 @@
 ---
 title: keywords
+sidebarDepth: 2
 ---
 
 # Ajv-keywords

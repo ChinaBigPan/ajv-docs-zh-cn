@@ -1,5 +1,6 @@
 ---
 title: ajv-cli
+sidebarDepth: 2
 ---
 
 # Ajv-cli <Badge text="v 3.2.1" />

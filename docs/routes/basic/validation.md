@@ -1,5 +1,6 @@
 ---
 title: 验证
+sidebarDepth: 2
 ---
 
 # 验证关键字

@@ -1,3 +1,21 @@
+function getBasicSideBar() {
+    return [
+        "",
+        "validation",
+        "cli",
+        "pack",
+        "keywords",
+        "custom",
+        "merge_patch",
+        "async"
+    ]
+}
+
+function getAPISideBar() {
+    return ["api"]
+}
+
+
 module.exports= {
     title: 'Ajv',
     description: "Ajv: Another JSON Schema Validator。Node.js和浏览器中最快速的JSON Schema验证器。",
@@ -19,49 +37,16 @@ module.exports= {
             {
                 text: "文档首页",
                 link: "/"
+            },
+            {
+                text: "API",
+                link: "/routes/api/api.html"
             }
         ],
-        sidebar: [
-            {
-                title: 'Ajv',
-                path: '/routes/',
-                sidebarDepth: 2
-            },
-            {
-                title: "验证",
-                path: 'routes/validation',
-                sidebarDepth: 2
-            },
-            {
-                title: "Ajv-cli",
-                path: '/routes/cli',
-                sidebarDepth: 2 
-            },
-            {
-                title: "Ajv-pack",
-                path: '/routes/pack',
-                sidebarDepth: 2
-            },
-            {
-                title: "Ajv-keywords",
-                path: '/routes/keywords',
-                sidebarDepth: 2
-            },
-            {
-                title: "自定义关键字",
-                path: '/routes/custom'
-            },
-            {
-                title: "Ajv-merge-patch",
-                path: '/routes/merge_patch',
-                sidebarDepth: 2
-            },
-            {
-                title: "Ajv-async",
-                path: '/routes/async',
-                sidebarDepth: 2
-            }
-        ]
+        sidebar: {
+            "/routes/basic/": getBasicSideBar(),
+            "/routes/api/": getAPISideBar()
+        }
     },
     head: [
         ["link", {

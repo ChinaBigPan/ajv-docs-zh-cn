@@ -1,5 +1,6 @@
 ---
 title: ajv-pack
+sidebarDepth: 2
 ---
 
 # Ajv-pack <Badge text="v 0.3.1" />

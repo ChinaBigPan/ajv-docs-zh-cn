@@ -1,5 +1,6 @@
 ---
 title: Ajv
+sidebarDepth: 2
 ---
 
 [英文原地址](https://github.com/ajv-validator/ajv)
@@ -500,15 +501,39 @@ validate(data).then(successFunc).catch(errorFunc);
 
 如果使用得当，JSON Schema 可以替代数据清理，但并不会取代其他的 API 安全注意事项。它引入了其它需要考虑的安全方面的事项。
 
-#### 安全联系(Security contact)
+#### 安全隐患汇报
 
+[Tidelift security contact]:https://tidelift.com/security
 
+若要报告安全漏洞，请使用[Tidelift 安全隐患汇报][Tidelift security contact]。Tidelift 将协调修复和披露安全隐患。请不要使用 GitHub 报告安全漏洞。
 
+#### 不可信的 schema
 
+Ajv 将 JSON schema 视为受信任的代码。该安全模型基于最常见的用例，即 schema 是静态的并与应用程序绑定在一起。
 
+如果您的 schema 是从不可信的来源获得的（或是从不可信数据生成的），那么下面几种情况就是您要竭力避免的：
 
+- 编译 schema 可能导致堆栈溢出(如果太深的话)。
+- 编译 schema 可能太慢了。
+- 验证某些数据较慢。
 
+虽然很难预测所有的场景，但至少它可以帮助限制不可信 schema 的大小(例如限制 JSON 字符串长度)和 schema 对象的最大深度(相对于较小的 JSON 字符串，这个深度可能很高)。您还可以将较慢的正则表达式放到`pattern`和`patternProperties`关键字中。
 
+无论您采取何种措施，使用不受信任的模式都会增加安全风险。
+
+#### JavaScript 对象中的循环引用
+
+[# 802]:https://github.com/ajv-validator/ajv/issues/802
+
+Ajv 不支持在对象中具有循环引用的 schema 和验证数据。参见[这里][# 802]。
+
+尝试编译这样的 schema 或验证这样的数据会导致堆栈溢出(或者异步验证不会完成)。根据所使用的解析器的不同，不受信任的数据可能导致循环引用。
+
+#### 受信任 schema 的安全风险
+
+JSON schema 中的一些关键字可能导致对某些数据的验证非常缓慢。这些数字包括(但可能不限于)：
+
+- 大量字符串的`pattern`和`format`
 
 
 

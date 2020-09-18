@@ -4,7 +4,7 @@ heroImage: /images/ajv_logo.png
 heroText: Ajv
 tagline: "Node.js和浏览器中最快速的JSON Schema验证器"
 actionText: v 6.12.3 →
-actionLink: /routes/
+actionLink: /routes/basic/
 meta:
   - name: description
     content: Node.js和浏览器中最快速的JSON Schema验证器。
