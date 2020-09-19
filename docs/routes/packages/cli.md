@@ -188,7 +188,7 @@ ajv test -s test/schema.json -d test/invalid_data.json --invalid
 | `--schema-id=` | 关键字作为 schema ID使用 |
 | `--extend-refs=` | 当 schema 中存在$ref时，验证其他关键字  |
 | `--missing-refs=` | 处理缺失的引用 schema (`true`/`ignore`/`fail`)  |
-| `--inline-refs=` | 引用 schema 编译模式(`true`/`false/`<number>`) |
+| `--inline-refs=` | 引用 schema 编译模式(`true`/`false`/`<number>`) |
 | `--remove-additional` | 移除额外属性 (`true`/`all`/`failing`) |
 | `--use-defaults` | 用默认关键字中的值替换缺少的属性/项 |
 | `--coerce-types` | 更改数据类型以匹配类型关键字 |

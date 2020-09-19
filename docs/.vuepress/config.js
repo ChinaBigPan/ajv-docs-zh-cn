@@ -2,17 +2,28 @@ function getBasicSideBar() {
     return [
         "",
         "validation",
-        "cli",
-        "pack",
-        "keywords",
-        "custom",
-        "merge_patch",
-        "async"
+        "custom",   
     ]
 }
 
 function getAPISideBar() {
     return ["api"]
+}
+
+function getPackagesSideBar() {
+    return [
+        "",
+        "async",
+        "bsontype",
+        "cli",
+        "errors",
+        "i18n",
+        "istanbul",
+        "keywords",
+        "merge_patch",
+        "pack",
+        "formats-draft2019"
+    ]
 }
 
 
@@ -40,12 +51,17 @@ module.exports= {
             },
             {
                 text: "API",
-                link: "/routes/api/api.html"
+                link: "/routes/api/api"
+            },
+            {
+                text: "相关扩展包",
+                link: "/routes/packages/"
             }
         ],
         sidebar: {
             "/routes/basic/": getBasicSideBar(),
-            "/routes/api/": getAPISideBar()
+            "/routes/api/": getAPISideBar(),
+            "/routes/packages/": getPackagesSideBar()
         }
     },
     head: [

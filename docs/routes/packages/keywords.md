@@ -1,9 +1,9 @@
 ---
-title: keywords
+title: ajv-keywords
 sidebarDepth: 2
 ---
 
-# Ajv-keywords
+# ajv-keywords
 
 [英文原地址](https://github.com/ajv-validator/ajv-keywords)
 
