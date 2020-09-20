@@ -2,7 +2,8 @@ function getBasicSideBar() {
     return [
         "",
         "validation",
-        "custom",   
+        "custom",
+        "coercion"
     ]
 }
 

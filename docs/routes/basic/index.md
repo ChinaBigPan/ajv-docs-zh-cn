@@ -622,10 +622,177 @@ console.log(data); // { "foo": 0, "bar": { "baz": "abc", "additional2": 2 }
 
 如果上面示例中的`removeAdditional`配置项是`"all"`，那么`additional1`和`additional2`属性都将被删除。
 
+如果配置项是`"failing"`那么`additional1`就已经被移除，无论其值为多少。`additional2`则只有当它的值在内部`additionalProperties`中的 schema 中失败时会被移除(因此在上面的示例中，它会保留下来，因为它传递了 schema，但任何非数字将被删除)。
 
+::: warning 请注意
+如果你使用的`removeAdditional`配置项内含有带有`additionalProperties`的`anyOf`/`oneOf`关键字，你的验证可能会失败，例如:
 
+```js
+{
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "foo": { "type": "string" }
+      },
+      "required": [ "foo" ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "bar": { "type": "integer" }
+      },
+      "required": [ "bar" ],
+      "additionalProperties": false
+    }
+  ]
+}
+```
+:::
 
+上述 schema 的旨在允许字符串属性“foo”或整数属性“bar”的对象，但不允许同时具有这两个属性或任何其他属性的对象。
 
+当配置了`removeAdditional: true`时，对象`{" foo": "abc"}`会通过验证，但`{"bar": 1}`会失败。发生这种情况的原因是，当验证`oneOf`第一个子级 schema 时，属性`bar`被删除了，因为根据标准，它是一个附加属性(因为它并未包含在相同 schema 的`properties`关键字中)。
+
+虽然这种情况是意料之外的，但它是正确的。开发者若想达成期望的行为(两个对象中都是合法属性，但附加属性被删除了)，需要对 schema 按照以下方式重构：
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "foo": { "type": "string" },
+    "bar": { "type": "integer" }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    { "required": [ "foo" ] },
+    { "required": [ "bar" ] }
+  ]
+}
+```
+
+上面的 schema 更有效，它编译成的函数更快。
+
+## 配置默认值
+
+[useDefaults]:https://github.com/ajv-validator/ajv#options
+
+通过[useDefaults][useDefaults]配置项，Ajv 将把`priperties`和`items`的 schema (当它是 schema 数组时)中的`default`关键字的值配置给丢失的属性和项。
+
+当配置项为`"empty"`时，属性和项的值为`null`或`""`(空字符串)会被认为丢失并设置为默认值。
+
+**该配置项会修改原始数据。**
+
+::: tip 请注意
+默认值作为文本被插入到生成的验证代码中，因此插入到数据中的值将是 schema 中默认值的深拷贝。
+:::
+
+示例1 (`properties`中的`default`)：
+
+```js
+var ajv = new Ajv({ useDefaults: true });
+var schema = {
+  "type": "object",
+  "properties": {
+    "foo": { "type": "number" },
+    "bar": { "type": "string", "default": "baz" }
+  },
+  "required": [ "foo", "bar" ]
+};
+
+var data = { "foo": 1 };
+
+var validate = ajv.compile(schema);
+
+console.log(validate(data)); // true
+console.log(data); // { "foo": 1, "bar": "baz" }
+```
+
+示例2 (`items`中的`default`)：
+
+```js
+var schema = {
+  "type": "array",
+  "items": [
+    { "type": "number" },
+    { "type": "string", "default": "foo" }
+  ]
+}
+
+var data = [ 1 ];
+
+var validate = ajv.compile(schema);
+
+console.log(validate(data)); // true
+console.log(data); // [ 1, "foo" ]
+```
+
+其他情况`default`关键字会被忽略：
+
+- 不在`properties`或`items`的子级 schema 中。
+- 在`anyOf`、`oneOf`和`not`中的 schema 中。
+- 在`switch`关键字的`if`子级 schema 中。
+- 在由自定义宏关键字生成的 schema 中。
+
+[strictDefaults]:https://github.com/ajv-validator/ajv#options
+
+[strictDefaults][strictDefaults]配置项定制了 Ajv 的行为，补强了 Ajv 忽略掉的默认值情况(设置为`true`会引发错误，`"log"`则会输出警告)。
+
+## 强制数据类型
+
+在验证用户输入时，所有数据属性通常都是字符串。`coerceTypes`配置项允许您将数据类型强制转换为 schema `type`关键字中指定的类型，以便通过验证并在之后使用正确类型的数据。
+
+**该配置项会修改原始数据。**
+
+::: warning 请注意
+如果您将标量值传递给验证函数，它将被强制规定类型并且通过验证，但是您传递的变量的值将不会被更新，因为标量是按值传递的。
+:::
+
+示例1：
+
+```js
+var ajv = new Ajv({ coerceTypes: true });
+var schema = {
+  "type": "object",
+  "properties": {
+    "foo": { "type": "number" },
+    "bar": { "type": "boolean" }
+  },
+  "required": [ "foo", "bar" ]
+};
+
+var data = { "foo": "1", "bar": "false" };
+
+var validate = ajv.compile(schema);
+
+console.log(validate(data)); // true
+console.log(data); // { "foo": 1, "bar": false }
+```
+
+示例2（强制数组）：
+
+```js
+var ajv = new Ajv({ coerceTypes: 'array' });
+var schema = {
+  "properties": {
+    "foo": { "type": "array", "items": { "type": "number" } },
+    "bar": { "type": "boolean" }
+  }
+};
+
+var data = { "foo": "1", "bar": ["false"] };
+
+var validate = ajv.compile(schema);
+
+console.log(validate(data)); // true
+console.log(data); // { "foo": [1], "bar": false }
+```
+
+从示例中可以看到，强制规则与 JavaScript 是不同的，它可以按期望验证用户输入，并让过程可逆(从而正确验证在“anyOf”和其他复合关键字的子级 schema 中定义不同类型的情况)。
+
+[Coercion rules]:https://github.com/ajv-validator/ajv/blob/master/COERCION.md
+
+参见[强制类型规则][Coercion rules]文档了解更多细节。
 
 
 
