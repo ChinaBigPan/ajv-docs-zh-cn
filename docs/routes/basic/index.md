@@ -738,14 +738,14 @@ console.log(data); // [ 1, "foo" ]
 
 [strictDefaults][strictDefaults]配置项定制了 Ajv 的行为，补强了 Ajv 忽略掉的默认值情况(设置为`true`会引发错误，`"log"`则会输出警告)。
 
-## 强制数据类型
+## 强制数据类型转换
 
 在验证用户输入时，所有数据属性通常都是字符串。`coerceTypes`配置项允许您将数据类型强制转换为 schema `type`关键字中指定的类型，以便通过验证并在之后使用正确类型的数据。
 
 **该配置项会修改原始数据。**
 
 ::: warning 请注意
-如果您将标量值传递给验证函数，它将被强制规定类型并且通过验证，但是您传递的变量的值将不会被更新，因为标量是按值传递的。
+如果您将值类型传递给验证函数，它将被强制规定类型并且通过验证，但是您传递的变量的值将不会被更新，因为值类型是按值传递的。
 :::
 
 示例1：
@@ -792,7 +792,7 @@ console.log(data); // { "foo": [1], "bar": false }
 
 [Coercion rules]:https://github.com/ajv-validator/ajv/blob/master/COERCION.md
 
-参见[强制类型规则][Coercion rules]文档了解更多细节。
+参见[强制类型转换][Coercion rules]文档了解更多细节。
 
 
 
