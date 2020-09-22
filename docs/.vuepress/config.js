@@ -8,7 +8,7 @@ function getBasicSideBar() {
 }
 
 function getAPISideBar() {
-    return ["api"]
+    return ["api", "options", "validation_errors"]
 }
 
 function getPackagesSideBar() {
@@ -51,7 +51,7 @@ module.exports= {
                 link: "/"
             },
             {
-                text: "API",
+                text: "API和配置项",
                 link: "/routes/api/api"
             },
             {
