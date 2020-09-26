@@ -67,7 +67,10 @@ sidebarDepth: 3
 [JSON 引用]:https://tools.ietf.org/html/draft-pbryan-zyp-json-ref-03#section-3
 [异步编译]:https://github.com/ajv-validator/ajv#asynchronous-schema-compilation
 [Filtering data]:https://github.com/ajv-validator/ajv#filtering-data
-
+[Assigning defaults]:https://github.com/ajv-validator/ajv#assigning-defaults
+[Coercing data types]:https://github.com/ajv-validator/ajv#coercing-data-types
+[coercion rules]:https://github.com/ajv-validator/ajv/blob/master/COERCION.md
+[ajv-async]:https://github.com/ajv-validator/ajv-async
 
 | 验证和报告配置项 | 描述 |
 |:---:|----|
@@ -94,28 +97,35 @@ sidebarDepth: 3
 | `extendRefs` | 当 schema 中存在`$ref`时，验证其他关键字。它的值如下：<br /><br />- `"ignore"(默认)`：当使用`$ref`时，将会(按照[JSON 引用][JSON 引用]标准)忽略其他关键字。在 schema 编译期间将记录一个警告。<br />- `"fail"(推荐)`：如果其他验证关键字与`$ref`一起使用，则在编译 schema 时将抛出异常。建议使用此配置项以确保 schema 中没有忽略的关键字，否则可能会造成混淆。<br />- `true`：使用`$ref`(5.0.0 之前版本中的默认行为)验证 schema 中的所有关键字。 |
 | `loadSchema` | 当使用`compileAsync`方法并且缺少一些引用(配置项项`missingRefs`不是`‘fail’`或`‘ignore’`)时，用来加载远程 schema 的异步函数。此函数应接受远程 schema uri 作为参数，并返回结果为 schema 的 Promise。参见[异步编译][异步编译]中的示例。|
 
+
+
 | 修改验证数据的配置项 | 描述 |
 |:---:|----|
 | `removeAdditional` | 删除额外属性 —— 参见[筛选数据][Filtering data]中的示例。如果使用`addMetaSchema`方法添加 schema，则不使用此选项。它的值如下：<br /><br />- `false`：并不移除额外属性。<br />- `"all"`：删除所有额外属性，无论 schema 中的`additionalProperties`关键字如何(并且没有对它们进行验证)。<br />- `true`：只有添加了`additionalProperties`关键字等于`false`的额外属性才会被删除。<br />- `"failing"`：schema 验证失败的额外属性将被删除(其中`additionalProperties`关键字为`false`或 schema)。 |
-| `useDefaults` ||
-| `coerceTypes` ||
+| `useDefaults` | 使用相应的`default`关键字的值替换丢失的或未定义的属性和项。默认行为是忽略`default`关键字。如果使用`addMetaSchema`方法添加 schema，则不使用此选项。参见[配置默认值][Assigning defaults]中的示例。它的值如下：<br /><br />- `false(默认值)`：不使用默认值。<br />- `true`：按值插入默认值(使用对象文字)。<br />- `"empty"`：除了缺失或未定义，属性和项的默认值为`null`或`""`(一个空字符串)。<br />- `"shared"`：已废弃，不翻了。 |
+| `coerceTypes` | 更改数据的数据类型以匹配类型关键字。请参见强制[数据类型][Coercing data types]和[强制转换规则][coercion rules]的示例。它的值如下：<br /><br />- `false(默认值)`：无强制类型。<br />- `true`：强制值数据类型。<br />- `"array"`：除了在值类型之间强制使用外，还可将值数据强制转换为只有一个元素的数组，反之亦然(根据 schema 的要求)。|
 
 | 严格模式配置项 | 描述 |
 |:---:|----|
-| `strictDefaults` ||
-| `strictKeywords` ||
-| `strictNumbers` ||
+| `strictDefaults` | 报告会忽略 schema 中的`default`关键字。它的值如下：<br /><br />- `false(默认值)`：忽略的默认值不会报告。<br />- `true`：如果存在忽略的默认值，则抛出错误。<br />- `"log"`：如果出现忽略的默认值，则记录并警告。 |
+| `strictKeywords` | 报告会忽略 schema 中的未知关键字。它的值如下：<br /><br />- `false(默认值)`：未知的关键字不会报告。<br />- `true`：如果存在未知的关键字，则抛出错误。<br />- `"log"`：如果出现未知的关键字，则记录并警告。 |
+| `strictNumbers` | 严格验证数字，`NaN`和`Infinity`会验证失败。它的值如下：<br /><br />- `false(默认值)`：`NaN`和`Infinity`将通过数字类型验证。<br />- `true`：`NaN`和`Infinity`不会数字类型验证。 |
+
+[nodent]:https://github.com/MatAtBread/nodent
+[draft07]:http://json-schema.org/draft-07/schema
 
 | 异步验证配置项 | 描述 |
 |:---:|----|
-| `transpile` ||
+| `transpile` | 需要[ajv-async][ajv-async]包。它将决定 Ajv 是否转换编译的异步验证函数。它的值如下: <br /><br />- `undefined`：如果不支持异步函数，则使用[nodent][nodent]进行转换。<br />- `true`：总是使用[nodent][nodent]进行转换。<br />- `false`：不转换。如果不支持异步函数则抛出错误。|
+
+[meta-schema]:http://json-schema.org/documentation.html
 
 | 高级配置项 | 描述 |
 |:---:|----|
-| `meta` ||
-| `validateSchema` ||
-| `addUsedSchema` ||
-| `inlineRefs` ||
+| `meta` | (默认值：`true`) 添加[元 schema][meta-schema]，以便它可以被其他 schema 使用。如果传入了一个对象，它将作为没有`$schema`关键字的 schema 的默认元 schema。这个默认的元 schema **必须**具有`$schema`关键字。 |
+| `validateSchema` | (默认值：`true`) 根据元 schema 验证添加/编译的 schema。schema 中的`$schema`属性可以是[draft07][draft07]或为空(将使用 draft07 元 schema)，也可以是对之前通过`addMetaSchema`方法添加的 schema 的引用。它的值如下：<br /><br />- `true(默认值)`：如果验证失败则抛出错误。<br />- `"log"`：如果验证失败，抛出错误。<br />- `false`：跳过 schema 验证。|
+| `addUsedSchema` | 如果有不以"#"开头的`$id`(或`id`)属性，则使用默认方法`compile`和`validate`向实例中添加 schema。如果存在`$id`且不是唯一的，则会抛出异常。将该配置项设置为`false`可以跳过向实例添加 schema 和使用这些方法时的`$id`惟一性检查。此配置项不影响`addSchema`方法。|
+| `inlineRefs` | 影响引用 schema 的编译。它的值如下: <br /><br />- `true(默认值)`：引用的 schema 若不存在 refs 则是内联引用，不管它们的尺寸如何 —— 这在很大程度上提高了性能，但代价是编译的 schema 函数更大。<br />- `false`：以非内联引用的 schema (它们将被编译为单独的函数)。<br /> 整数：限制将要内联 schema 的关键字的最大数量。 |
 | `passContext` ||
 | `loopRequired` ||
 | `ownProperties` ||
