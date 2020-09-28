@@ -8,7 +8,7 @@ function getBasicSideBar() {
 }
 
 function getAPISideBar() {
-    return ["api", "options", "validation_errors"]
+    return ["api", "options", "validation_errors", "plugins"]
 }
 
 function getPackagesSideBar() {

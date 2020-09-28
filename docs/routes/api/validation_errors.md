@@ -35,12 +35,53 @@ sidebarDepth: 3
 
 错误中的`params`对象的属性取决于验证失败的关键字。
 
-- `maxItems`、`minItems`、`maxLength`、`minLength`、`maxProperties`、`minProperties` ———— `limit`属性(关键字的 schema，值为数字)。
-- `additionalItems` ———— `limit`属性(如果`items`关键字是 schema 数组且`additionalItems`为`false`，则允许的最大项数量)。
-- `additionalProperties` ———— `additionalProperty`属性(该属性并未在`properties`和`patternProperties`关键字中使用)。
+- `maxItems`、`minItems`、`maxLength`、`minLength`、`maxProperties`、`minProperties` —— `limit`属性(关键字的 schema，数字类型)。
+- `additionalItems` —— `limit`属性(如果`items`关键字是 schema 数组且`additionalItems`为`false`，则允许的最大项数量)。
+- `additionalProperties` —— `additionalProperty`属性(该属性并未在`properties`和`patternProperties`关键字中使用)。
 - `dependencies` - 属性：
     - `property`(依赖属性)。
-    - `missingProperty`
+    - `missingProperty`(所需缺少的依赖项 —— 目前只报告第一个)。
+    - `deps`(所需的依赖，用逗号分隔的字符串列表)。
+    - `depsCount`(所需依赖数)。
+- `format` —— `format`属性(关键字的 schema)。
+- `maximum`、`minimum` —— 属性：
+    - `limit`(关键字的 schema，数字类型)。
+    - `exclusive`(`exclusiveMaximum`或`exclusiveMinimum`的 schema，布尔类型)。
+    - `comparison`(比较运算，将位于左侧的数据与位于右侧限制条件进行比较；可以为`"<"`、`"<="`、`">"`、`">="`、字符串类型)。
+- `multipleOf` - `multipleOf`属性(关键字的 schema)。
+- `pattern` - `pattern`(关键字的 schema)。
+- `required` - `missingProperty`属性(缺失的属性)。
+- `propertyNames` - `propertyName`属性(无效的属性名称)。
+- `patternRequired` - (ajv-keyword 中的)`missingPattern`属性(不匹配任何属性的必需通配符)。
+- `type` - `type`属性(所需的类型，用逗号分隔的字符串列表)。
+- `uniqueItems` - `i`和`j`属性(重复的索引项)。
+- `const` - `allowedValue`属性指向的值(关键字的 schema)。
+- `enum` - `allowedValue`属性指向的值的数组(关键字的 schema)。
+- `$ref` - `ref`属性引用的 schema URI。
+- `oneOf` - `passingSchemas`属性(传入 schema 的索引数组，如果没有传入 schema 则为空)。
+- 自定义关键字(防止关键字定义不会产生错误) - `keyword`属性(关键字的名称)。
+
+## 错误日志
+
+在初始化 Ajv 时使用`logger`配置项将允许您定义自定义日志。这里您可以构建现有的日志。也可以使用其他的日志库，只要该库向外暴露了所需的方法即可。如果缺少所需的方法会抛出异常。
+
+- **所需的方法：**`log`、`warn`、`error`
+
+```js
+var otherLogger = new OtherLogger();
+var ajv = new Ajv({
+  logger: {
+    log: console.log.bind(console),
+    warn: function warn() {
+      otherLogger.logWarn.apply(otherLogger, arguments);
+    },
+    error: function error() {
+      otherLogger.logError.apply(otherLogger, arguments);
+      console.error.apply(console, arguments);
+    }
+  }
+});
+```
 
 
 

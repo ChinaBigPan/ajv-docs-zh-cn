@@ -15,11 +15,11 @@ meta:
   - name: fetags
     content: "[{'kind': 'node', 'text': 'node'}, {'kind':'js', 'text': 'js'}]"
 features:
-  - title: 
-    details: 
+  - title: 性能
+    details: 目前 Ajv 是速度最快、最符合标准的验证器。
   - title: Ajv
-    details: Ajv 使用 doT Template 将JSON Schemas转换为高速的验证函数，从而有效地进行V8优化。
-  - title: 
-    details: 
+    details: Ajv 使用 doT Template 将 JSON Schema 转换为高性能验证函数，从而更加方便了 V8 进行优化。
+  - title: 可扩展性
+    details: 插件众多方便扩展和定制
 footer: MIT Licensed | Translated By 大笑
 ---
