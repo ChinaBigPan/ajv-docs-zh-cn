@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: /images/ajv_logo.png
+heroImage: /images/logo.png
 heroText: Ajv
 tagline: "Node.js和浏览器中最快速的JSON Schema验证器"
 actionText: v 6.12.3 →
@@ -13,7 +13,7 @@ meta:
   - name: feversion
     content: v 6.12.3
   - name: fetags
-    content: "[{'kind': 'node', 'text': 'node'}, {'kind':'js', 'text': 'js'}]"
+    content: "[{'kind': 'iconNodejs', 'text': 'Node.js'}, {'kind': 'iconjs', 'text': 'js'}]"
 features:
   - title: 性能
     details: 目前 Ajv 是速度最快、最符合标准的验证器。
