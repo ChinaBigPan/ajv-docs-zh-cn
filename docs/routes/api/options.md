@@ -119,6 +119,11 @@ sidebarDepth: 3
 | `transpile` | 需要[ajv-async][ajv-async]包。它将决定 Ajv 是否转换编译的异步验证函数。它的值如下: <br /><br />- `undefined`：如果不支持异步函数，则使用[nodent][nodent]进行转换。<br />- `true`：总是使用[nodent][nodent]进行转换。<br />- `false`：不转换。如果不支持异步函数则抛出错误。|
 
 [meta-schema]:http://json-schema.org/documentation.html
+[ajv-i18n]:https://github.com/ajv-validator/ajv-i18n
+[js-beautify]:https://github.com/beautify-web/js-beautify
+[Asynchronous validation]:https://github.com/ajv-validator/ajv#asynchronous-validation
+[sacjs]:https://github.com/epoberezkin/sacjs
+[fast-json-stable-stringify]:https://github.com/epoberezkin/fast-json-stable-stringify
 
 | 高级配置项 | 描述 |
 |:---:|----|
@@ -126,16 +131,16 @@ sidebarDepth: 3
 | `validateSchema` | (默认值：`true`) 根据元 schema 验证添加/编译的 schema。schema 中的`$schema`属性可以是[draft07][draft07]或为空(将使用 draft07 元 schema)，也可以是对之前通过`addMetaSchema`方法添加的 schema 的引用。它的值如下：<br /><br />- `true(默认值)`：如果验证失败则抛出错误。<br />- `"log"`：如果验证失败，抛出错误。<br />- `false`：跳过 schema 验证。|
 | `addUsedSchema` | 如果有不以"#"开头的`$id`(或`id`)属性，则使用默认方法`compile`和`validate`向实例中添加 schema。如果存在`$id`且不是唯一的，则会抛出异常。将该配置项设置为`false`可以跳过向实例添加 schema 和使用这些方法时的`$id`惟一性检查。此配置项不影响`addSchema`方法。|
 | `inlineRefs` | 影响引用 schema 的编译。它的值如下: <br /><br />- `true(默认值)`：引用的 schema 若不存在 refs 则是内联引用，不管它们的尺寸如何 —— 这在很大程度上提高了性能，但代价是编译的 schema 函数更大。<br />- `false`：以非内联引用的 schema (它们将被编译为单独的函数)。<br /> 整数：限制将要内联 schema 的关键字的最大数量。 |
-| `passContext` ||
-| `loopRequired` ||
-| `ownProperties` ||
-| `multipleOfPrecision` ||
-| `errorDataPath` ||
-| `messages` ||
-| `sourceCode` ||
-| `processCode` ||
-| `cache` ||
-| `serialize`||
+| `passContext` | 向自定义关键词函数传入验证上下文。如果设置为`true`并且您通过`validate.call(context, data)`将某个上下文传入编译验证函数，那么就可以在您的自定义关键词中的`this`使用`context`。默认的`this`是 Ajv 实例。|
+| `loopRequired` | 默认情况下`required`关键字会被编译为单个表达式(或是`allErrors`的语句序列)。如果在这个关键字中有大量的属性，这可能会导致一个非常大的验证函数。通过传入一个整数来设置在循环中验证`required`关键字的属性数 ———— 更小的验证函数但性能更差。|
+| `ownProperties` | 默认情况下，Ajv 遍历所有可枚举的对象属性；该值为`true`时，只迭代自己的可枚举对象属性(即直接在对象上找而不是在其原型上找)。 |
+| `multipleOfPrecision` | 默认情况下，`multipleOf`关键字通过将除法结果与该结果`parseInt()`后的值进行比较来验证。它适用于大于 1 的除数。对于像 0.01 这样除数，除法的结果通常不是整数(即使它应该是个整数)。如果您需要使用分数，请将该项设置为正整数 N，以便验证`multipleOf`时可以使用这个公式：`Math.abs(Math.round(division) - division) < 1e-N`(它的速度虽然慢一点，但允许浮点数计算偏差)。  |
+| `errorDataPath` | 已废弃，不翻了。 |
+| `messages` | 默认值`true`。在错误中包含易于识别的信息，若要自定义信息可以设置为`false`。(比方说搭配[ajv-i18n][ajv-i18n]) |
+| `sourceCode` | 为验证函数添加`sourceCode`属性(用于调试；这段代码可能与`toString`调用的结果不同)。 |
+| `processCode` | 函数，用于在将生成的代码传递给函数构造函数之前对其进行处理。它既可以用来美化函数(生成的验证函数没有换行)，也可以用来置换代码。从 5.0.0 版本开始，使用下面的值: <br /><br />- `beautify`：使用[js-beautify][js-beautify]格式化生成的函数。如果您想要美化生成的代码，可以传入调用`require('js-beautify').js_beautify`的函数，如`processCode: code => js_beautify(code)`。 <br />- `transpile` 转换异步验证功能。您仍然可以在[ajv-async][ajv-async]包中使用`transpile`选项。有关更多信息，请参阅[异步验证][Asynchronous validation]。 |
+| `cache` | 缓存实例，用于存储使用稳定字符串化 schema 作为键的已编译模式。例如，可以使用集合关联缓存[sacjs][sacjs]。如果没有传入任何值将使用一个简单的 hash 表，这对于常见用例(静态定义且数量有限的 schema)来说已经足够了。缓存应该有`put(key, value)`、`get(key)`、`del(key)`和`clear()`方法。 |
+| `serialize`| 函数序列化模式以缓存键。传递`false`以使用 schema 本身作为键(比方说用`WeakMap`作缓存的话)。默认使用了[fast-json-stable-stringify][fast-json-stable-stringify] |
 
 
 
