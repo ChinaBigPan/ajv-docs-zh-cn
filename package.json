@@ -1,7 +1,7 @@
 {
-  "name": "vuepress-template",
-  "version": "1.0.0",
-  "description": "",
+  "name": "ajv-docs-zh-cn",
+  "version": "6.12.3",
+  "description": "ajv 中文文档。ajv 是一个非常流行的JSON Schema验证工具，并且拥有非常出众的性能表现。",
   "main": "index.js",
   "author": "大笑 <daguogxp@qq.com>",
   "scripts": {

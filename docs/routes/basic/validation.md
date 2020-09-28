@@ -115,7 +115,7 @@ Ajv 定义了这些格式：`date`、`date-time`、`uri`、`email`、`hostname`�
 
 ### `formatMaximum`/`formatMinimum`和`formatExclusiveMaximum`/`formatExclusiveMinimum`(提案)。
 
-在[ajv-keywords](/ajv-docs-cn/routes/keywords)包中定义的。
+在[ajv-keywords](/ajv-docs-zh-cn/routes/keywords)包中定义的。
 
 `formatMaximum`(`formatMinimum`)关键字的值应该是**字符串**。该值是由`format`关键字决定的允许有效的最大值(最小值)。
 

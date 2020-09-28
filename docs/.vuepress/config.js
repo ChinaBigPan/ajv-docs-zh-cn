@@ -31,7 +31,7 @@ function getPackagesSideBar() {
 module.exports= {
     title: 'Ajv',
     description: "Ajv: Another JSON Schema Validator。Node.js和浏览器中最快速的JSON Schema验证器。",
-    base: "/ajv-docs-cn/",
+    base: "/ajv-docs-zh-cn/",
     markdown: {
         lineNumbers: true,
         anchor: {

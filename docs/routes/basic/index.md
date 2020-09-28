@@ -84,16 +84,16 @@ Ajv 将 schema 编译为函数并在所有情况下对其进行缓存(使用[fas
 
 如果您正在使用 Ajv 在浏览器文档中编译一个 schema (这是典型用法)，但是它配置了内容安全策略(CSP, Content Security Policy)，该策略需要`script-src`指令且包含了`unsafe-eval`值。**注意：**⚠️，`unsafe-eval`值并不是一个安全的策略。因为它有可能打开文档的跨站脚本攻击。
 
-为了在不影响 CSP 的情况下使用 Ajv，您可以[使用 CLI 对 schema 进行预编译](/ajv-docs-cn/routes/cli)。这将把 schema JSON 转换为 JavaScript 文件，该文件会导出一个`validate`函数到运行时编译的模式中。
+为了在不影响 CSP 的情况下使用 Ajv，您可以[使用 CLI 对 schema 进行预编译](/ajv-docs-zh-cn/routes/cli)。这将把 schema JSON 转换为 JavaScript 文件，该文件会导出一个`validate`函数到运行时编译的模式中。
 
-需要注意的是预编译使用的是[ajv-pack](/ajv-docs-cn/routes/pack)进行的，它可以编译的模式特性有一些限制。成功的预编译应该和运行时编译的 schema 是相同的。
+需要注意的是预编译使用的是[ajv-pack](/ajv-docs-zh-cn/routes/pack)进行的，它可以编译的模式特性有一些限制。成功的预编译应该和运行时编译的 schema 是相同的。
 
 ## 命令行接口
 
-[ajv-cli](/ajv-docs-cn/routes/cli)可以作为单独的 npm 包。它支持如下功能：
+[ajv-cli](/ajv-docs-zh-cn/routes/cli)可以作为单独的 npm 包。它支持如下功能：
 
 - 编译 JSON Schema 以测试其有效性。
-- BETA：生成独立模块，导出不需要 Ajv 使用的验证函数(使用[ajv-pack](/ajv-docs-cn/routes/pack))。
+- BETA：生成独立模块，导出不需要 Ajv 使用的验证函数(使用[ajv-pack](/ajv-docs-zh-cn/routes/pack))。
 - 将 schema 迁移到 draft-07 (采用[json-schema-migrate](https://github.com/epoberezkin/json-schema-migrate))
 - 根据 JSON Schema 验证文件。
 - 根据 JSON Schema 测试数据的期望有效性。
