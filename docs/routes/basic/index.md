@@ -3,6 +3,10 @@ title: Ajv
 sidebarDepth: 2
 ---
 
+<febeacon />
+
+# Ajv
+
 [英文原地址](https://github.com/ajv-validator/ajv)
 
 ## 安装
